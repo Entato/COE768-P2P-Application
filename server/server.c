@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 	struct  sockaddr_in sin; /* an Internet endpoint address         */
         int     s, type;        /* socket descriptor and socket type    */
 	int 	port=3000;
-	int	i, total;
+	int	i;
                                                                                 
 
 	switch(argc){
@@ -58,7 +58,9 @@ int main(int argc, char *argv[]) {
 	while (1) {
 		struct pdu rpdu;
 		if (recvfrom(s, (struct pdu*)&rpdu, sizeof(struct pdu), 0, (struct sockaddr *)&fsin, &alen) < 0)
-			fprintf(f(stderr, "recvfrom error\n");
+			fprintf(stderr, "recvfrom error\n");
+
+		printf(rpdu.data);
 
 		
 	}

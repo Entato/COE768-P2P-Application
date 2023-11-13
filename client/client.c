@@ -67,7 +67,10 @@ int main(int argc, char **argv) {
 
 	(void) write(s, MSG, strlen(MSG));
 
-	while (1) {
-	}
+	struct pdu spdu;
+	spdu.type = R;
+	spdu.data = "test data";
+	write(s, &spdu, n+1);
+
 	exit(0);
 }
