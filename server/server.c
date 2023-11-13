@@ -1,5 +1,3 @@
-/* time_server.c - main */
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,14 +8,15 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+enum PDU_type {R, D, S, T, C, O, A, E};
+
 struct pdu {
-	char type;
+	PDU_type type;
 	char data[100];
 };
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	struct  sockaddr_in fsin;	/* the from address of a client	*/
 	char	buf[100];		/* "input" buffer; any size > 0	*/
 	char    *pts;
