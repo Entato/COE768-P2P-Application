@@ -15,7 +15,7 @@
 
 #define	MSG		"Any Message \n"
 
-enum PDU_type {R, D, S, T, C, O, A, E};
+typedef enum {R, D, S, T, C, O, A, E} PDU_type;
 
 struct pdu {
 	PDU_type type;
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
 
 	struct pdu spdu;
 	spdu.type = R;
-	spdu.data = "test data";
+	strcpy(spdu.data, "test data");
 	write(s, &spdu, n+1);
 
 	exit(0);

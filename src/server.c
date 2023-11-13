@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-enum PDU_type {R, D, S, T, C, O, A, E};
+typedef enum {R, D, S, T, C, O, A, E} PDU_type;
 
 struct pdu {
 	PDU_type type;
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 		if (recvfrom(s, (struct pdu*)&rpdu, sizeof(struct pdu), 0, (struct sockaddr *)&fsin, &alen) < 0)
 			fprintf(stderr, "recvfrom error\n");
 
-		printf(rpdu.data);
+		printf("%s\n", rpdu.data);
 
 		
 	}
