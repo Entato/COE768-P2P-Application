@@ -10,8 +10,11 @@ server: $(BIN)server
 
 client: $(BIN)client
 
-$(BIN)%: $(SOURCE)%.c
+$(BIN)%: $(SOURCE)%.c | $(BIN)
 	$(CC) -o $@ $<
+
+$(BIN):
+	mkdir $@
 
 clean:
 	rm -f $(BIN)server $(BIN)client
