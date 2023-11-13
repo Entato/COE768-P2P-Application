@@ -15,12 +15,8 @@ struct pdu {
 	char data[100];
 };
 
-/*------------------------------------------------------------------------
- * main - Iterative UDP server for TIME service
- *------------------------------------------------------------------------
- */
-int
-main(int argc, char *argv[])
+
+int main(int argc, char *argv[])
 {
 	struct  sockaddr_in fsin;	/* the from address of a client	*/
 	char	buf[100];		/* "input" buffer; any size > 0	*/
@@ -61,47 +57,5 @@ main(int argc, char *argv[])
 	alen = sizeof(fsin);
 
 	while (1) {
-		struct pdu rpdu;
-		if (recvfrom(s, (struct pdu*)&rpdu, sizeof(struct pdu), 0,
-				(struct sockaddr *)&fsin, &alen) < 0)
-			fprintf(stderr, "recvfrom error\n");
-		int fd;
-		struct pdu spdu;
-		if (rpdu.type == 'C'){
-			if (fd = open(rpdu.data, O_RDONLY) == -1){
-				spdu.type = 'E';
-				strcpy(spdu.data, "File not found");
-				(void) sendto(s, &spdu, sizeof(struct pdu), 0,
-						(struct sockaddr *)&fsin, sizeof(fsin));
-			} else {
-				spdu.type = 'D';
-				FILE* fp = fopen(rpdu.data, "r");
-				if (fp == NULL) { 
-					printf("File Not Found!\n"); 
-					return -1; 
-				}
-				fseek(fp, 0L, SEEK_END);
-				long int length = ftell(fp);
-				rewind(fp);
-				fclose(fp);
-
-				fd = open(rpdu.data, O_RDONLY);
-				total = 0;
-				while (length - total > 100){
-					i = read(fd, buf, 100);
-					strcpy(spdu.data, buf);
-					(void) sendto(s, &spdu, sizeof(struct pdu), 0,
-							(struct sockaddr *)&fsin, sizeof(fsin));
-					total += i;
-				}
-				spdu.type = 'F';
-				i = read(fd, buf, 100);
-				buf[length - total + 1] = '\0';
-
-				strcpy(spdu.data, buf);
-				(void) sendto(s, &spdu, sizeof(struct pdu), 0,
-						(struct sockaddr *)&fsin, sizeof(fsin));
-			}
-		}
 	}
 }
