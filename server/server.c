@@ -57,5 +57,10 @@ int main(int argc, char *argv[])
 	alen = sizeof(fsin);
 
 	while (1) {
+		struct pdu rpdu;
+		if (recvfrom(s, (struct pdu*)&rpdu, sizeof(struct pdu), 0, (struct sockaddr *)&fsin, &alen) < 0)
+			fprintf(f(stderr, "recvfrom error\n");
+
+		
 	}
 }
