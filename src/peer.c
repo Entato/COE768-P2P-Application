@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
 	struct pdu spdu;
 	spdu.type = 'R';
 	strcpy(spdu.data, "name      content   address");
-	write(s, &spdu, n+1);
+	write(s, &spdu, 100);
 
 	exit(0);
 }
