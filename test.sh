@@ -1,32 +1,32 @@
 #!/bin/bash
 
 BIN="./bin"
-SERVER="${BIN}/server"
-CLIENT="${BIN}/client"
+INDEX="${BIN}/index"
+PEER="${BIN}/peer"
 
 start_server() {
-	echo "Starting server"
+	echo "Starting index server"
 	${SERVER} &
 	sleep 2
 }
 
 stop_server() {
-	pgrep -x "server" > /dev/null
+	pgrep -x "index" > /dev/null
 	if [ $? -eq 0 ] 
 	then
-		pkill -x "server"
+		pkill -x "index"
 		sleep 2
 	else
-		echo "Server not running"
+		echo "Index server not running"
 	fi
 }
 
-client_test() {
-	${CLIENT} &
+peer_test() {
+	${peer} &
 
 }
 
 
 start_server
-client_test
+peer_test
 stop_server
