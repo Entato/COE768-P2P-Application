@@ -6,7 +6,7 @@ PEER="${BIN}/peer"
 
 start_server() {
 	echo "Starting index server"
-	${SERVER} &
+	${INDEX} &
 	sleep 2
 }
 
@@ -22,7 +22,7 @@ stop_server() {
 }
 
 peer_test() {
-	${peer} &
+	${PEER} &
 
 }
 
