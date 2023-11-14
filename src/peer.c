@@ -65,10 +65,35 @@ int main(int argc, char **argv) {
 
 	(void) write(s, MSG, strlen(MSG));
 
-	struct pdu spdu;
-	spdu.type = 'R';
-	strcpy(spdu.data, "name      content   address");
-	write(s, &spdu, 100);
+	int select;
+
+	char pname[10], cname[10], address[25];
+	while(1){
+		printf("1. Register content\n2. Download content\n3. List content\n4. Deregister content\n5. Quit\n");
+		read(0, str, 100);
+		select = atoi(str);
+
+		switch(select){
+			case 1:
+				printf("Name:\n");
+				read(0, pname, 10);
+				printf("Content Name:\n");
+				read(0, cname, 10);
+				printf("Address:\n");
+				read(0, address, 25);
+
+				struct pdu spdu;
+				spdu.type = 'R';
+				sprintf(spdu.data, "%s%s%s", pname, cname, address);
+				write(s, &spdu, 100);
+				break;
+			case 5:
+				exit(0);
+			default:
+				printf("Invalid input\n");
+		}
+	}
+
 
 	exit(0);
 }
