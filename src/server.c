@@ -59,9 +59,19 @@ int main(int argc, char *argv[]) {
 		struct pdu rpdu;
 		if (recvfrom(s, (struct pdu*)&rpdu, sizeof(struct pdu), 0, (struct sockaddr *)&fsin, &alen) < 0)
 			fprintf(stderr, "recvfrom error\n");
+		char pname[10];
+		char cname[10];
+		char address[25];
 
-		printf("%s\n", rpdu.data);
+		if (rpdu.type = R){
+			strcpy(pname, rpdu.data);
+			strcpy(cname, rpdu.data+10);
+			strcpy(address, rpdu.data+20);
+		}
 
+		printf("%s\n", pname);
+		printf("%s\n", cname);
+		printf("%s\n", address);
 		
 	}
 }
