@@ -8,10 +8,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-typedef enum {R, D, S, T, C, O, A, E} PDU_type;
-
 struct pdu {
-	PDU_type type;
+	char type;
 	char data[100];
 };
 
@@ -63,7 +61,7 @@ int main(int argc, char *argv[]) {
 		char cname[10];
 		char address[25];
 
-		if (rpdu.type = R){
+		if (rpdu.type == 'R'){
 			strcpy(pname, rpdu.data);
 			strcpy(cname, rpdu.data+10);
 			strcpy(address, rpdu.data+20);
