@@ -70,22 +70,28 @@ int main(int argc, char **argv) {
 	char pname[10], cname[10], address[25];
 	while(1){
 		printf("1. Register content\n2. Download content\n3. List content\n4. Deregister content\n5. Quit\n");
-		read(0, str, 100);
+		read(0, str, 10);
 		select = atoi(str);
 
 		switch(select){
 			case 1:
+				int n;
 				printf("Name:\n");
-				read(0, pname, 10);
+				n = read(0, pname, 10);
+				pname[n - 1] = '\0';
 				printf("Content Name:\n");
-				read(0, cname, 10);
+				n = read(0, cname, 10);
+				cname[n - 1] = '\0';
 				printf("Address:\n");
-				read(0, address, 25);
+				n = read(0, address, 25);
+				address[n - 1] = '\0';
 
 				struct pdu spdu;
 				spdu.type = 'R';
-				sprintf(spdu.data, "%s%s%s", pname, cname, address);
-				write(s, &spdu, 100);
+				strcpy(spdu.data, pname);
+				strcpy(spdu.data+10, cname);
+				strcpy(spdu.data+20, address);
+				write(s, &spdu, sizeof(struct pdu));
 				break;
 			case 5:
 				exit(0);

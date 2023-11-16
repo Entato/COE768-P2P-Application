@@ -13,6 +13,12 @@ struct pdu {
 	char data[100];
 };
 
+struct content {
+	char peerName[10];
+	char contentName[10];
+	char address[25];
+};
+
 
 int main(int argc, char *argv[]) {
 	struct  sockaddr_in fsin;	/* the from address of a client	*/
@@ -25,6 +31,8 @@ int main(int argc, char *argv[]) {
 	int 	port=3000;
 	int	i;
                                                                                 
+	struct content contents[100];
+	int contentsSize = 0;
 
 	switch(argc){
 		case 1:
@@ -53,23 +61,26 @@ int main(int argc, char *argv[]) {
         listen(s, 5);	
 	alen = sizeof(fsin);
 
+	struct pdu rpdu;
 	while (1) {
-		struct pdu rpdu;
 		if (recvfrom(s, (struct pdu*)&rpdu, sizeof(struct pdu), 0, (struct sockaddr *)&fsin, &alen) < 0)
 			fprintf(stderr, "recvfrom error\n");
-		char pname[10];
-		char cname[10];
-		char address[25];
 
 		if (rpdu.type == 'R'){
-			strcpy(pname, rpdu.data);
-			strcpy(cname, rpdu.data+10);
-			strcpy(address, rpdu.data+20);
+			struct content cont;
+
+			strcpy(cont.peerName, rpdu.data);
+			strcpy(cont.contentName, rpdu.data+10);
+			strcpy(cont.address, rpdu.data+20);
+
+			printf("%s\n", cont.peerName);
+			printf("%s\n", cont.contentName);
+			printf("%s\n", cont.address);
+			contents[contentsSize] = cont;
+			contentsSize++;
+		} else {
 		}
 
-		printf("%s\n", pname);
-		printf("%s\n", cname);
-		printf("%s\n", address);
 		
 	}
 }
