@@ -71,13 +71,18 @@ int main(int argc, char *argv[]) {
 
 			strcpy(cont.peerName, rpdu.data);
 			strcpy(cont.contentName, rpdu.data+10);
-			strcpy(cont.address, rpdu.data+20);
+			strcpy(cont.address, rpdu.data+25);
 
 			printf("%s\n", cont.peerName);
 			printf("%s\n", cont.contentName);
 			printf("%s\n", cont.address);
 			contents[contentsSize] = cont;
 			contentsSize++;
+
+			spdu.type = 'A';
+			spdu.data[0] = '\0';
+			(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+
 		} else if (rpdu.type == 'O'){
 			spdu.type = 'O';
 			sprintf(spdu.data, "%d", contentsSize);
