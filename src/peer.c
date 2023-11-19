@@ -25,11 +25,11 @@ struct registered {
 	char contentName[10];
 };
 
-struct registered registeredContent[100];
+struct registered registeredContent[32];
 int regSize = 0;
 
-int searchName(char* name);
-int searchContent(char* content);
+unsigned int searchName(char* name);
+unsigned int searchContent(char* content);
 
 int main(int argc, char **argv) {
 	char	*host = "localhost";
@@ -157,18 +157,24 @@ int main(int argc, char **argv) {
 	exit(0);
 }
 
-int searchName(char* name){
+unsigned int searchName(char* name){
 	int i;
+	unsigned int sum = 0;
 	for (i = 0; i < regSize; i++){
-		if (strcmp(name, registeredContent[i].name)) return i;
+		if (strcmp(name, registeredContent[i].name)){
+			sum += 1 << i;
+		}
 	}
-	return -1;
+	return sum;
 }
 
-int searchContent(char* content){
+unsigned int searchContent(char* content){
 	int i;
+	unsigned int sum = 0;
 	for (i = 0; i < regSize; i++){
-		if (strcmp(content, registeredContent[i].contentName)) return i;
+		if (strcmp(content, registeredContent[i].contentName)){
+			sum += 1 << i;
+		}
 	}
-	return -1;
+	return sum;
 }

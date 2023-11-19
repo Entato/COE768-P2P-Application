@@ -19,11 +19,12 @@ struct content {
 	char address[25];
 };
 
-struct content contents[100];
+struct content contents[32];
 int contentsSize = 0;
 
-//returns the contents index in contents[] if it exists
-int searchContent(char* name);
+//returns bit array of existing content in contents[]
+unsigned int searchContent(char* content);
+unsigned int searchName(char* name);
 
 int main(int argc, char *argv[]) {
 	struct  sockaddr_in fsin;	/* the from address of a client	*/
@@ -103,10 +104,24 @@ int main(int argc, char *argv[]) {
 	}
 }
 
-int searchContent(char* name){
+unsigned int searchName(char* name){
 	int i;
+	unsigned int sum = 0;
 	for (i = 0; i < contentsSize; i++){
-		if (strcmp(name, contents[i].contentName)) return i;
+		if (strcmp(name, contents[i].peerName)){
+			sum += 1 << i;
+		}	
 	}
-	return -1;
+	return sum;
+}
+
+unsigned int searchContent(char* content){
+	int i;
+	unsigned int sum = 0;
+	for (i = 0; i < contentsSize; i++){
+		if (strcmp(content, contents[i].contentName)){
+			sum += 1 << i;
+		}	
+	}
+	return sum;
 }
