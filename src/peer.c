@@ -20,6 +20,11 @@ struct pdu {
 	char data[100];
 };
 
+struct registered {
+	char name[10];
+	char contentName[10];
+};
+
 int main(int argc, char **argv) {
 	char	*host = "localhost";
 	int	port = 3000;
@@ -27,6 +32,9 @@ int main(int argc, char **argv) {
 	struct hostent	*phe;	/* pointer to host information entry	*/
 	struct sockaddr_in sin;	/* an Internet endpoint address		*/
 	int	s, n, type;	/* socket descriptor and socket type	*/
+
+	struct registered registeredContent[100];
+	int regSize = 0;
 
 	switch (argc) {
 	case 1:
@@ -95,7 +103,15 @@ int main(int argc, char **argv) {
 				write(s, &spdu, sizeof(struct pdu));
 
 				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
-				if (rpdu.type != 'A') printf("Error Registering");
+				if (rpdu.type == 'A'){
+					struct registered reg;
+					strcpy(reg.name, pname);
+					strcpy(reg.contentName, cname);
+					registeredContent[regSize] = reg;
+					regSize++;
+				} else {
+					printf("Error Registering");
+				}
 				
 				break;
 			case 3:
