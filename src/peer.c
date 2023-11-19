@@ -66,7 +66,9 @@ int main(int argc, char **argv) {
 	(void) write(s, MSG, strlen(MSG));
 
 	int select;
+	int i, listSize;
 
+	struct pdu spdu, rpdu;
 	char pname[10], cname[10], address[25];
 	while(1){
 		printf("1. Register content\n2. Download content\n3. List content\n4. Deregister content\n5. Quit\n");
@@ -86,12 +88,28 @@ int main(int argc, char **argv) {
 				n = read(0, address, 25);
 				address[n - 1] = '\0';
 
-				struct pdu spdu;
 				spdu.type = 'R';
 				strcpy(spdu.data, pname);
 				strcpy(spdu.data+10, cname);
 				strcpy(spdu.data+20, address);
 				write(s, &spdu, sizeof(struct pdu));
+				break;
+			case 3:
+				spdu.type = 'O';
+				spdu.data[0] = '\0';
+				write(s, &spdu, sizeof(struct pdu));
+
+				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
+				if (rpdu.type != 'O'){
+					printf("Error");
+					break;
+				}
+				listSize = atoi(rpdu.data);
+				for (i = 0; i < listSize; i++){
+					read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
+					printf("%s\n", rpdu.data);
+				}
+				
 				break;
 			case 5:
 				exit(0);

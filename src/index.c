@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
         listen(s, 5);	
 	alen = sizeof(fsin);
 
-	struct pdu rpdu;
+	struct pdu rpdu, spdu;
 	while (1) {
 		if (recvfrom(s, (struct pdu*)&rpdu, sizeof(struct pdu), 0, (struct sockaddr *)&fsin, &alen) < 0)
 			fprintf(stderr, "recvfrom error\n");
@@ -78,6 +78,16 @@ int main(int argc, char *argv[]) {
 			printf("%s\n", cont.address);
 			contents[contentsSize] = cont;
 			contentsSize++;
+		} else if (rpdu.type == 'O'){
+			spdu.type = 'O';
+			sprintf(spdu.data, "%d", contentsSize);
+			(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+
+			for (i = 0; i < contentsSize; i++){
+				sprintf(spdu.data, "name: %s\ncontent name: %s\n", contents[i].peerName, contents[i].contentName);
+				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+			}
+			
 		} else {
 		}
 
