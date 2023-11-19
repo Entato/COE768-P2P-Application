@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 				spdu.type = 'R';
 				strcpy(spdu.data, pname);
 				strcpy(spdu.data+10, cname);
-				strcpy(spdu.data+25, address);
+				strcpy(spdu.data+20, address);
 				write(s, &spdu, sizeof(struct pdu));
 
 				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));

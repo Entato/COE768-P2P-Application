@@ -19,6 +19,11 @@ struct content {
 	char address[25];
 };
 
+struct content contents[100];
+int contentsSize = 0;
+
+//returns the contents index in contents[] if it exists
+int searchContent(char* name);
 
 int main(int argc, char *argv[]) {
 	struct  sockaddr_in fsin;	/* the from address of a client	*/
@@ -31,8 +36,6 @@ int main(int argc, char *argv[]) {
 	int 	port=3000;
 	int	i;
                                                                                 
-	struct content contents[100];
-	int contentsSize = 0;
 
 	switch(argc){
 		case 1:
@@ -71,7 +74,7 @@ int main(int argc, char *argv[]) {
 
 			strcpy(cont.peerName, rpdu.data);
 			strcpy(cont.contentName, rpdu.data+10);
-			strcpy(cont.address, rpdu.data+25);
+			strcpy(cont.address, rpdu.data+20);
 
 			printf("%s\n", cont.peerName);
 			printf("%s\n", cont.contentName);
@@ -98,4 +101,12 @@ int main(int argc, char *argv[]) {
 
 		
 	}
+}
+
+int searchContent(char* name){
+	int i;
+	for (i = 0; i < contentsSize; i++){
+		if (strcmp(name, contents[i].contentName)) return i;
+	}
+	return -1;
 }
