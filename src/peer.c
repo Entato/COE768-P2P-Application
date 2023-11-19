@@ -25,6 +25,12 @@ struct registered {
 	char contentName[10];
 };
 
+struct registered registeredContent[100];
+int regSize = 0;
+
+int searchName(char* name);
+int searchContent(char* content);
+
 int main(int argc, char **argv) {
 	char	*host = "localhost";
 	int	port = 3000;
@@ -33,8 +39,6 @@ int main(int argc, char **argv) {
 	struct sockaddr_in sin;	/* an Internet endpoint address		*/
 	int	s, n, type;	/* socket descriptor and socket type	*/
 
-	struct registered registeredContent[100];
-	int regSize = 0;
 
 	switch (argc) {
 	case 1:
@@ -131,6 +135,17 @@ int main(int argc, char **argv) {
 				}
 				
 				break;
+			case 4:
+				spdu.type = 'T';
+
+				printf("Name:\n");
+				n = read(0, pname, 10);
+				pname[n - 1] = '\0';
+				printf("Content Name:\n");
+				n = read(0, cname, 10);
+				cname[n - 1] = '\0';
+
+				
 			case 5:
 				exit(0);
 			default:
@@ -140,4 +155,20 @@ int main(int argc, char **argv) {
 
 
 	exit(0);
+}
+
+int searchName(char* name){
+	int i;
+	for (i = 0; i < regSize; i++){
+		if (strcmp(name, registeredContent[i].name)) return i;
+	}
+	return -1;
+}
+
+int searchContent(char* content){
+	int i;
+	for (i = 0; i < regSize; i++){
+		if (strcmp(content, registeredContent[i].contentName)) return i;
+	}
+	return -1;
 }
