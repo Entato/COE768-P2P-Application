@@ -113,8 +113,8 @@ int main(int argc, char **argv) {
 					strcpy(reg.contentName, cname);
 					registeredContent[regSize] = reg;
 					regSize++;
-				} else {
-					printf("Error Registering");
+				} else if (rpdu.type == 'E'){
+					printf("%s\n", rpdu.data);
 				}
 				
 				break;
@@ -161,7 +161,7 @@ unsigned int searchName(char* name){
 	int i;
 	unsigned int sum = 0;
 	for (i = 0; i < regSize; i++){
-		if (strcmp(name, registeredContent[i].name)){
+		if (!strcmp(name, registeredContent[i].name)){
 			sum += 1 << i;
 		}
 	}
@@ -172,7 +172,7 @@ unsigned int searchContent(char* content){
 	int i;
 	unsigned int sum = 0;
 	for (i = 0; i < regSize; i++){
-		if (strcmp(content, registeredContent[i].contentName)){
+		if (!strcmp(content, registeredContent[i].contentName)){
 			sum += 1 << i;
 		}
 	}

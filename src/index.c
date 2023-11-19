@@ -77,9 +77,13 @@ int main(int argc, char *argv[]) {
 			strcpy(cont.contentName, rpdu.data+10);
 			strcpy(cont.address, rpdu.data+20);
 
-			printf("%s\n", cont.peerName);
-			printf("%s\n", cont.contentName);
-			printf("%s\n", cont.address);
+			if (searchContent(cont.contentName)) {
+				spdu.type = 'E';
+				strcpy(spdu.data, "Content already exists");
+				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+				continue;
+			}
+
 			contents[contentsSize] = cont;
 			contentsSize++;
 
@@ -108,7 +112,7 @@ unsigned int searchName(char* name){
 	int i;
 	unsigned int sum = 0;
 	for (i = 0; i < contentsSize; i++){
-		if (strcmp(name, contents[i].peerName)){
+		if (!strcmp(name, contents[i].peerName)){
 			sum += 1 << i;
 		}	
 	}
@@ -119,7 +123,7 @@ unsigned int searchContent(char* content){
 	int i;
 	unsigned int sum = 0;
 	for (i = 0; i < contentsSize; i++){
-		if (strcmp(content, contents[i].contentName)){
+		if (!strcmp(content, contents[i].contentName)){
 			sum += 1 << i;
 		}	
 	}
