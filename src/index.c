@@ -118,8 +118,16 @@ int main(int argc, char *argv[]) {
 				if (search){
 					index = getIndex(search);
 					memmove(contents+index, contents+index+1, (--contentsSize - index) *sizeof(struct content));
+					spdu.type = 'A';
+					spdu.data[0] = '\0';
+					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+				} else {
+					spdu.type = 'E';
+					strcpy(spdu.data, "Data is not registered\n");
+					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 				}
 
+				break;
 
 			default:
 		}

@@ -28,8 +28,9 @@ struct registered {
 struct registered registeredContent[32];
 int regSize = 0;
 
-unsigned int searchName(char* name);
-unsigned int searchContent(char* content);
+uint32_t searchName(char* name);
+uint32_t searchContent(char* content);
+int getIndex(uint32_t bitArray);
 
 int main(int argc, char **argv) {
 	char	*host = "localhost";
@@ -79,6 +80,7 @@ int main(int argc, char **argv) {
 
 	int select;
 	int i, listSize;
+	int search, index;
 
 	struct pdu spdu, rpdu;
 	char pname[10], cname[10], address[25];
@@ -125,7 +127,7 @@ int main(int argc, char **argv) {
 
 				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
 				if (rpdu.type != 'O'){
-					printf("Error");
+					printf("Error\n");
 					break;
 				}
 				listSize = atoi(rpdu.data);
@@ -144,10 +146,25 @@ int main(int argc, char **argv) {
 				printf("Content Name:\n");
 				n = read(0, cname, 10);
 				cname[n - 1] = '\0';
+
+				search = searchName(pname) & searchContent(cname);
+				if (!search){
+					printf("Content not registered under this user\n");
+					break;
+				}
+
 				strcpy(spdu.data, pname);
 				strcpy(spdu.data+10, cname);
 				write(s, &spdu, sizeof(struct pdu));
 
+				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
+				if (rpdu.type == 'A'){
+					index = getIndex(search);
+					memmove(registeredContent+index, registeredContent+index+1, (--regSize - index) *sizeof(struct registered));
+				} else if (rpdu.type == 'E'){
+					printf("%s\n", rpdu.data);
+				}
+				
 				break;
 			case 5:
 				exit(0);
@@ -160,9 +177,9 @@ int main(int argc, char **argv) {
 	exit(0);
 }
 
-unsigned int searchName(char* name){
+uint32_t searchName(char* name){
 	int i;
-	unsigned int sum = 0;
+	uint32_t sum = 0;
 	for (i = 0; i < regSize; i++){
 		if (!strcmp(name, registeredContent[i].name)){
 			sum += 1 << i;
@@ -171,13 +188,22 @@ unsigned int searchName(char* name){
 	return sum;
 }
 
-unsigned int searchContent(char* content){
+uint32_t searchContent(char* content){
 	int i;
-	unsigned int sum = 0;
+	uint32_t sum = 0;
 	for (i = 0; i < regSize; i++){
 		if (!strcmp(content, registeredContent[i].contentName)){
 			sum += 1 << i;
 		}
 	}
 	return sum;
+}
+
+int getIndex(uint32_t bitArray){
+	int count = 0;
+	while(bitArray != 1){
+		bitArray /= 2;
+		count++;
+	}
+	return count;
 }
