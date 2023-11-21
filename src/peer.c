@@ -144,8 +144,11 @@ int main(int argc, char **argv) {
 				printf("Content Name:\n");
 				n = read(0, cname, 10);
 				cname[n - 1] = '\0';
+				strcpy(spdu.data, pname);
+				strcpy(spdu.data+10, cname);
+				write(s, &spdu, sizeof(struct pdu));
 
-				
+				break;
 			case 5:
 				exit(0);
 			default:

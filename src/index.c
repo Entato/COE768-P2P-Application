@@ -23,8 +23,12 @@ struct content contents[32];
 int contentsSize = 0;
 
 //returns bit array of existing content in contents[]
-unsigned int searchContent(char* content);
-unsigned int searchName(char* name);
+uint32_t searchContent(char* content);
+uint32_t searchName(char* name);
+
+//since there can be no duplicates in the contents array
+//this assumes there is only a single bit in the array
+int getIndex(uint32_t bitArray);
 
 int main(int argc, char *argv[]) {
 	struct  sockaddr_in fsin;	/* the from address of a client	*/
@@ -65,7 +69,9 @@ int main(int argc, char *argv[]) {
         listen(s, 5);	
 	alen = sizeof(fsin);
 
+	int search, index;
 	struct pdu rpdu, spdu;
+	char peerName[10], contentName[10];
 	while (1) {
 		if (recvfrom(s, (struct pdu*)&rpdu, sizeof(struct pdu), 0, (struct sockaddr *)&fsin, &alen) < 0)
 			fprintf(stderr, "recvfrom error\n");
@@ -103,6 +109,17 @@ int main(int argc, char *argv[]) {
 					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 				}
 				break;
+			case 'T':
+				strcpy(peerName, rpdu.data);
+				strcpy(contentName, rpdu.data+10);
+
+				search = searchName(peerName) & searchContent(contentName);
+					
+				if (search){
+					index = getIndex(search);
+					memmove(contents+index, contents+index+1, (--contentsSize - index) *sizeof(struct content));
+				}
+
 
 			default:
 		}
@@ -110,7 +127,7 @@ int main(int argc, char *argv[]) {
 	}
 }
 
-unsigned int searchName(char* name){
+uint32_t searchName(char* name){
 	int i;
 	unsigned int sum = 0;
 	for (i = 0; i < contentsSize; i++){
@@ -121,7 +138,7 @@ unsigned int searchName(char* name){
 	return sum;
 }
 
-unsigned int searchContent(char* content){
+uint32_t searchContent(char* content){
 	int i;
 	unsigned int sum = 0;
 	for (i = 0; i < contentsSize; i++){
@@ -130,4 +147,13 @@ unsigned int searchContent(char* content){
 		}	
 	}
 	return sum;
+}
+
+int getIndex(uint32_t bitArray){
+	int count = 0;
+	while(bitArray != 1){
+		bitArray /= 2;
+		count++;
+	}
+	return count;
 }
