@@ -70,41 +70,43 @@ int main(int argc, char *argv[]) {
 		if (recvfrom(s, (struct pdu*)&rpdu, sizeof(struct pdu), 0, (struct sockaddr *)&fsin, &alen) < 0)
 			fprintf(stderr, "recvfrom error\n");
 
-		if (rpdu.type == 'R'){
-			struct content cont;
+		switch (rpdu.type){
+			case 'R':
+				struct content cont;
 
-			strcpy(cont.peerName, rpdu.data);
-			strcpy(cont.contentName, rpdu.data+10);
-			strcpy(cont.address, rpdu.data+20);
+				strcpy(cont.peerName, rpdu.data);
+				strcpy(cont.contentName, rpdu.data+10);
+				strcpy(cont.address, rpdu.data+20);
 
-			if (searchContent(cont.contentName)) {
-				spdu.type = 'E';
-				strcpy(spdu.data, "Content already exists");
+				if (searchContent(cont.contentName)) {
+					spdu.type = 'E';
+					strcpy(spdu.data, "Content already exists");
+					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+					break;
+				}
+
+				contents[contentsSize] = cont;
+				contentsSize++;
+
+				spdu.type = 'A';
+				spdu.data[0] = '\0';
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
-				continue;
-			}
+				break;
 
-			contents[contentsSize] = cont;
-			contentsSize++;
-
-			spdu.type = 'A';
-			spdu.data[0] = '\0';
-			(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
-
-		} else if (rpdu.type == 'O'){
-			spdu.type = 'O';
-			sprintf(spdu.data, "%d", contentsSize);
-			(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
-
-			for (i = 0; i < contentsSize; i++){
-				sprintf(spdu.data, "name: %s\ncontent name: %s\n", contents[i].peerName, contents[i].contentName);
+			case 'O':
+				spdu.type = 'O';
+				sprintf(spdu.data, "%d", contentsSize);
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
-			}
-			
-		} else {
+
+				for (i = 0; i < contentsSize; i++){
+					sprintf(spdu.data, "name: %s\ncontent name: %s\n", contents[i].peerName, contents[i].contentName);
+					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+				}
+				break;
+
+			default:
 		}
 
-		
 	}
 }
 
