@@ -167,6 +167,12 @@ int main(int argc, char **argv) {
 				
 				break;
 			case 5:
+				spdu.type = 'T';
+				for (i = 0; i < regSize; i++){
+					strcpy(spdu.data, registeredContent[i].name);
+					strcpy(spdu.data+10, registeredContent[i].contentName);
+					write(s, &spdu, sizeof(struct pdu));
+				}
 				exit(0);
 			default:
 				printf("Invalid input\n");
