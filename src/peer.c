@@ -39,6 +39,7 @@ int main(int argc, char **argv) {
 	struct hostent	*phe;	/* pointer to host information entry	*/
 	struct sockaddr_in sin;	/* an Internet endpoint address		*/
 	int	s, n, type;	/* socket descriptor and socket type	*/
+	int	sd;
 
 
 	switch (argc) {
@@ -78,6 +79,8 @@ int main(int argc, char **argv) {
 
 	(void) write(s, MSG, strlen(MSG));
 
+
+
 	int select;
 	int i, listSize;
 	int search, index;
@@ -98,14 +101,23 @@ int main(int argc, char **argv) {
 				printf("Content Name:\n");
 				n = read(0, cname, 10);
 				cname[n - 1] = '\0';
-				printf("Address:\n");
-				n = read(0, address, 25);
-				address[n - 1] = '\0';
+
+				//Creating TCP socket
+				struct sockaddr_in reg_addr;
+				sd = socket(AF_INET, SOCK_STREAM, 0);
+				reg_addr.sin_family = AF_INET;
+				reg_addr.sin_port = htons(0);
+				reg_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+				bind(sd, (struct sockaddr*)&reg_addr, sizeof(reg_addr));
+
+				int alen = sizeof(struct sockaddr_in);
+				getsockname(sd, (struct sockaddr*) &reg_addr, &alen);
+				printf("%s:%d\n",inet_ntoa(reg_addr.sin_addr), reg_addr.sin_port);
 
 				spdu.type = 'R';
 				strcpy(spdu.data, pname);
 				strcpy(spdu.data+10, cname);
-				strcpy(spdu.data+20, address);
+				sprintf(spdu.data+20, "%d", reg_addr.sin_port);
 				write(s, &spdu, sizeof(struct pdu));
 
 				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));

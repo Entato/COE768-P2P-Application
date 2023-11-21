@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 
 				for (i = 0; i < contentsSize; i++){
-					sprintf(spdu.data, "name: %s\ncontent name: %s\n", contents[i].peerName, contents[i].contentName);
+					sprintf(spdu.data, "name: %s\ncontent name: %s\naddress: %s\n", contents[i].peerName, contents[i].contentName, contents[i].address);
 					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 				}
 				break;
