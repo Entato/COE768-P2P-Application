@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,7 +83,8 @@ int main(int argc, char *argv[]) {
 
 				strcpy(cont.peerName, rpdu.data);
 				strcpy(cont.contentName, rpdu.data+10);
-				strcpy(cont.address, rpdu.data+20);
+				getpeername(s, (struct sockaddr*) &fsin, &alen);
+				sprintf(cont.address, "%s:%s\n",inet_ntoa(fsin.sin_addr), rpdu.data+20);
 
 				if (searchContent(cont.contentName)) {
 					spdu.type = 'E';
