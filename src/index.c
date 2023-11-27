@@ -23,6 +23,7 @@ struct content {
 
 struct content contents[32];
 int contentsSize = 0;
+int frequency[32];
 
 //returns bit array of existing content in contents[]
 uint32_t searchContent(char* content);
@@ -31,6 +32,9 @@ uint32_t searchName(char* name);
 //since there can be no duplicates in the contents array
 //this assumes there is only a single bit in the array
 int getIndex(uint32_t bitArray);
+
+//takes in a bitarray of matching content and returns the index with lowest frequency
+int getLowestFrequencyIndex(uint32_t bitArray);
 
 int main(int argc, char *argv[]) {
 	struct  sockaddr_in fsin;	/* the from address of a client	*/
@@ -103,15 +107,17 @@ int main(int argc, char *argv[]) {
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 				break;
 			case 'S':
-				if(!searchContent(rpdu.data)){
+				search = searchContent(rpdu.data);
+				if(!search){
 					spdu.type = 'E';
 					strcpy(spdu.data, "Content does not exist");
 					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 					break;
 				}
-				getIndex(searchContent(rpdu.data));
+				index = getLowestFrequencyIndex(search);
 				spdu.type = 'S';
-				strcpy(spdu.data, contents[getIndex(searchContent(rpdu.data))].address);
+				strcpy(spdu.data, contents[index].address);
+				strcpy(spdu.data+20, contents[index].port);
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 
 				break;
@@ -181,4 +187,21 @@ int getIndex(uint32_t bitArray){
 		count++;
 	}
 	return count;
+}
+
+int getLowestFrequencyIndex(uint32_t bitArray){
+	int count = 0;
+	int lowest = 100;
+	int lowestIndex;
+	while(bitArray > 0){
+		if (bitArray % 2 == 1){
+			if(lowest > frequency[count]){
+				lowestIndex = count;
+				lowest = frequency[count];
+			}
+		}
+		bitArray = bitArray >> 1;
+		count++;
+	}
+	return lowestIndex;
 }
