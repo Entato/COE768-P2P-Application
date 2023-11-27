@@ -17,7 +17,8 @@ struct pdu {
 struct content {
 	char peerName[10];
 	char contentName[10];
-	char address[25];
+	char address[20];
+	char port[6];
 };
 
 struct content contents[32];
@@ -84,7 +85,8 @@ int main(int argc, char *argv[]) {
 				strcpy(cont.peerName, rpdu.data);
 				strcpy(cont.contentName, rpdu.data+10);
 				getpeername(s, (struct sockaddr*) &fsin, &alen);
-				sprintf(cont.address, "%s:%s\n",inet_ntoa(fsin.sin_addr), rpdu.data+20);
+				strcpy(cont.address, inet_ntoa(fsin.sin_addr));
+				strcpy(cont.port, rpdu.data+20);
 
 				if (searchContent(cont.contentName)) {
 					spdu.type = 'E';
@@ -100,6 +102,19 @@ int main(int argc, char *argv[]) {
 				spdu.data[0] = '\0';
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 				break;
+			case 'S':
+				if(!searchContent(rpdu.data)){
+					spdu.type = 'E';
+					strcpy(spdu.data, "Content does not exist");
+					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+					break;
+				}
+				getIndex(searchContent(rpdu.data));
+				spdu.type = 'S';
+				strcpy(spdu.data, contents[getIndex(searchContent(rpdu.data))].address);
+				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+
+				break;
 
 			case 'O':
 				spdu.type = 'O';
@@ -107,7 +122,7 @@ int main(int argc, char *argv[]) {
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 
 				for (i = 0; i < contentsSize; i++){
-					sprintf(spdu.data, "name: %s\ncontent name: %s\naddress: %s\n", contents[i].peerName, contents[i].contentName, contents[i].address);
+					sprintf(spdu.data, "name: %s\ncontent name: %s\naddress: %s:%s\n", contents[i].peerName, contents[i].contentName, contents[i].address, contents[i].port);
 					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 				}
 				break;

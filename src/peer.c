@@ -94,7 +94,6 @@ int main(int argc, char **argv) {
 
 		switch(select){
 			case 1:
-				int n;
 				printf("Name:\n");
 				n = read(0, pname, 10);
 				pname[n - 1] = '\0';
@@ -127,10 +126,28 @@ int main(int argc, char **argv) {
 					strcpy(reg.contentName, cname);
 					registeredContent[regSize] = reg;
 					regSize++;
+					listen(sd, 5);
 				} else if (rpdu.type == 'E'){
 					printf("%s\n", rpdu.data);
 				}
 				
+				break;
+			case 2:
+				printf("Content Name:\n");
+				n = read(0, cname, 10);
+				cname[n - 1] = '\0';
+
+				spdu.type = 'S';
+				strcpy(spdu.data, cname);
+				write(s, &spdu, sizeof(struct pdu));
+
+				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
+				if (rpdu.type == 'S'){
+					strcpy(address, rpdu.data);
+				} else if (rpdu.type == 'E') {
+					printf("%s\n", rpdu.data);
+				}
+
 				break;
 			case 3:
 				spdu.type = 'O';
