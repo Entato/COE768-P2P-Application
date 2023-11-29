@@ -62,15 +62,19 @@ send_input() {
 
 p2p_test() {
 	send_input ${PIPE1} "1"
-	send_input ${PIPE1} "name"
+	send_input ${PIPE1} "peer1"
 	send_input ${PIPE1} "content"
 
 	sleep 1
 
 	send_input ${PIPE2} "2"
+	send_input ${PIPE2} "peer2"
 	send_input ${PIPE2} "content"
 
 	sleep 1
+
+	send_input ${PIPE1} "3"
+
 	send_input ${PIPE1} "5"
 	send_input ${PIPE2} "5"
 }

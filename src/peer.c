@@ -112,12 +112,16 @@ int main(int argc, char **argv) {
 				
 				break;
 			case 2:
+				printf("Name:\n");
+				n = read(0, pname, 10);
+				pname[n - 1] = '\0';
 				printf("Content Name:\n");
 				n = read(0, cname, 10);
 				cname[n - 1] = '\0';
 
 				spdu.type = 'S';
-				strcpy(spdu.data, cname);
+				strcpy(spdu.data, pname);
+				strcpy(spdu.data + 10, cname);
 				write(s, &spdu, sizeof(struct pdu));
 
 				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
@@ -159,6 +163,7 @@ int main(int argc, char **argv) {
 						read(sd, (struct pdu*)&rpdu, sizeof(struct pdu));
 					}
 
+					registerContent(s, pname, cname);
 
 				} else if (rpdu.type == 'E') {
 					printf("%s\n", rpdu.data);

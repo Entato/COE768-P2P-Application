@@ -92,9 +92,9 @@ int main(int argc, char *argv[]) {
 				strcpy(cont.address, inet_ntoa(fsin.sin_addr));
 				strcpy(cont.port, rpdu.data+20);
 
-				if (searchContent(cont.contentName)) {
+				if (searchContent(cont.contentName) & searchName(cont.peerName)) {
 					spdu.type = 'E';
-					strcpy(spdu.data, "Content already exists");
+					strcpy(spdu.data, "Content already registered with this name");
 					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 					break;
 				}
@@ -107,10 +107,20 @@ int main(int argc, char *argv[]) {
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 				break;
 			case 'S':
-				search = searchContent(rpdu.data);
+				struct content con;
+
+				strcpy(con.peerName, rpdu.data);
+				strcpy(con.contentName, rpdu.data+10);
+				
+				search = searchContent(con.contentName);
 				if(!search){
 					spdu.type = 'E';
 					strcpy(spdu.data, "Content does not exist");
+					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+					break;
+				} else if (searchName(con.peerName) & search) {
+					spdu.type = 'E';
+					strcpy(spdu.data, "Another peer with the name already registered the content");
 					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 					break;
 				}
