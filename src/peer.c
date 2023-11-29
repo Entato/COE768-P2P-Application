@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
 	struct hostent *hp;
 
 	struct pdu spdu, rpdu;
-	char pname[10], cname[10], address[25];
+	char pname[10], cname[10], address[20];
 	while(1){
 		printf("1. Register content\n2. Download content\n3. List content\n4. Deregister content\n5. Quit\n");
 		read(0, str, 10);
@@ -150,7 +150,9 @@ int main(int argc, char **argv) {
 									case 0:
 										close(sd);
 										
+										read(new_sd, &rpdu, sizeof(struct pdu));
 										write(new_sd, "content!!", 10);
+										close(new_sd);
 										exit(0);
 									default:
 										close(new_sd);
@@ -178,32 +180,36 @@ int main(int argc, char **argv) {
 				write(s, &spdu, sizeof(struct pdu));
 
 				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
+					char message[10];
 				if (rpdu.type == 'S'){
 					strcpy(address, rpdu.data);
 					strcpy(downloadPort, rpdu.data+20);
 
 					port = atoi(downloadPort);
 
+					if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
+						fprintf(stderr, "Can't create socket\n");
+					}
+
 					bzero((char*)&server, sizeof(struct sockaddr_in));
 					server.sin_family = AF_INET;
 					server.sin_port = htons(port);
 
-					if (hp = gethostbyname(address))
+					if (hp = gethostbyname(address)){
 						bcopy(hp->h_addr, (char*)&server.sin_addr, hp->h_length);
-					else if (inet_aton(address, (struct in_addr*) &server.sin_addr)){
+					} else if (inet_aton(address, (struct in_addr*) &server.sin_addr)){
 						fprintf(stderr, "can't get server address\n");
 					}
 
-					sd = socket(AF_INET, SOCK_DGRAM, 0);
 					if(connect(sd, (struct sockaddr*)&server, sizeof(server)) == -1){
-						printf("cant connect\n");
+						perror("cant connect\n");
 					}
-					printf("3\n");
 
 					spdu.type = 'D';
 					strcpy(spdu.data, cname);
 
-					char message[10];
+					write(sd, &spdu, sizeof(struct pdu));
+
 
 					read(sd, message, 10);
 					printf("%s\n", message);
