@@ -12,6 +12,7 @@ PIPE2="peer2.pipe"
 
 start_server() {
 	echo "Starting index server"
+	mkdir -p ${TESTDIR}/index
 	(cd ${TESTDIR}/index && ../../${INDEX} &)
 	sleep 2
 }
@@ -28,6 +29,10 @@ stop_server() {
 }
 
 peer_create() {
+	mkdir -p ${TESTDIR}/peer1
+	mkdir -p ${TESTDIR}/peer2
+	mkdir -p ${TESTDIR}/peer3
+
 	mkfifo ${PIPE1}
 	(cd ${TESTDIR}/peer1 && ../../${PEER} < ../../${PIPE1} &)
 	sleep infinity > ${PIPE1}&
