@@ -85,6 +85,10 @@ int main(int argc, char **argv) {
 	int i, listSize;
 	int search, index;
 
+	char downloadPort[6];
+	struct sockaddr_in server;
+	struct hostent *hp;
+
 	struct pdu spdu, rpdu;
 	char pname[10], cname[10], address[25];
 	while(1){
@@ -111,7 +115,6 @@ int main(int argc, char **argv) {
 
 				int alen = sizeof(struct sockaddr_in);
 				getsockname(sd, (struct sockaddr*) &reg_addr, &alen);
-				printf("%s:%d\n",inet_ntoa(reg_addr.sin_addr), reg_addr.sin_port);
 
 				spdu.type = 'R';
 				strcpy(spdu.data, pname);
@@ -144,6 +147,28 @@ int main(int argc, char **argv) {
 				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
 				if (rpdu.type == 'S'){
 					strcpy(address, rpdu.data);
+					strcpy(downloadPort, rpdu.data+20);
+
+					port = atoi(downloadPort);
+
+					bzero((char*)&server, sizeof(struct sockaddr_in));
+					server.sin_family = AF_INET;
+					server.sin_port = htons(port);
+
+					if (hp = gethostbyname(host))
+						bcopy(hp->h_addr, (char*)&server.sin_addr, hp->h_length);
+					else if (inet_aton(host, (struct in_addr*) &server.sin_addr)){
+						fprintf(stderr, "can't get server address\n");
+					}
+
+					sd = socket(AF_INET, SOCK_DGRAM, 0);
+					connect(sd, (struct sockaddr*)&sin, sizeof(sin));
+
+					spdu.type = 'D';
+					strcpy(spdu.data, cname);
+					write(sd, &spdu, sizeof(struct pdu));
+
+
 				} else if (rpdu.type == 'E') {
 					printf("%s\n", rpdu.data);
 				}
