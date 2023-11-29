@@ -1,15 +1,18 @@
 #!/bin/bash
 
+trap "kill 0" SIGINT
+
 BIN="./bin"
 INDEX="${BIN}/index"
 PEER="${BIN}/peer"
+TESTDIR="./test"
 
 PIPE1="peer1.pipe"
 PIPE2="peer2.pipe"
 
 start_server() {
 	echo "Starting index server"
-	${INDEX} &
+	(cd ${TESTDIR}/index && ../../${INDEX} &)
 	sleep 2
 }
 
@@ -26,11 +29,11 @@ stop_server() {
 
 peer_create() {
 	mkfifo ${PIPE1}
-	${PEER} < ${PIPE1} &
+	(cd ${TESTDIR}/peer1 && ../../${PEER} < ../../${PIPE1} &)
 	sleep infinity > ${PIPE1}&
 
 	mkfifo ${PIPE2}
-	${PEER} < ${PIPE2} &
+	(cd ${TESTDIR}/peer2 && ../../${PEER} < ../../${PIPE2} &)
 	sleep infinity > ${PIPE2}&
 
 	sleep 2
@@ -61,6 +64,8 @@ p2p_test() {
 
 	send_input ${PIPE2} "2"
 	send_input ${PIPE2} "content"
+
+	sleep 1
 }
 
 
