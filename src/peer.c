@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/socket.h> 
+#include <sys/signal.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -86,6 +87,7 @@ int main(int argc, char **argv) {
 	int search, index;
 
 	char downloadPort[6];
+	int alen;
 	struct sockaddr_in server;
 	struct hostent *hp;
 
@@ -106,20 +108,22 @@ int main(int argc, char **argv) {
 				cname[n - 1] = '\0';
 
 				//Creating TCP socket
-				struct sockaddr_in reg_addr;
 				sd = socket(AF_INET, SOCK_STREAM, 0);
-				reg_addr.sin_family = AF_INET;
-				reg_addr.sin_port = htons(0);
-				reg_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-				bind(sd, (struct sockaddr*)&reg_addr, sizeof(reg_addr));
+				bzero((char*)&server, sizeof(struct sockaddr_in));
+				server.sin_family = AF_INET;
+				server.sin_port = htons(0);
+				server.sin_addr.s_addr = htonl(INADDR_ANY);
+				if(bind(sd, (struct sockaddr*)&server, sizeof(server)) == -1){
+					fprintf(stderr, "Can't bind name to socket");
+				}
 
-				int alen = sizeof(struct sockaddr_in);
-				getsockname(sd, (struct sockaddr*) &reg_addr, &alen);
+				alen = sizeof(struct sockaddr_in);
+				getsockname(sd, (struct sockaddr*) &server, &alen);
 
 				spdu.type = 'R';
 				strcpy(spdu.data, pname);
 				strcpy(spdu.data+10, cname);
-				sprintf(spdu.data+20, "%d", reg_addr.sin_port);
+				sprintf(spdu.data+20, "%d", htons(server.sin_port));
 				write(s, &spdu, sizeof(struct pdu));
 
 				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
@@ -129,7 +133,36 @@ int main(int argc, char **argv) {
 					strcpy(reg.contentName, cname);
 					registeredContent[regSize] = reg;
 					regSize++;
-					listen(sd, 5);
+
+					switch (fork()){
+						//listening server
+						case 0:
+							listen(sd, 5);
+							(void) signal(SIGCHLD, SIG_IGN);
+
+							struct sockaddr_in client;
+							int new_sd;
+							int client_length = sizeof(client);
+							while(1){
+								new_sd = accept(sd, (struct sockaddr*)&client, &client_length);
+
+								switch(fork()){
+									case 0:
+										close(sd);
+										
+										write(new_sd, "content!!", 10);
+										exit(0);
+									default:
+										close(new_sd);
+								}
+							}
+							break;
+						default:
+							printf("Listening server created\n");
+							break;
+						case -1:
+							fprintf(stderr, "fork error\n");
+					}
 				} else if (rpdu.type == 'E'){
 					printf("%s\n", rpdu.data);
 				}
@@ -155,18 +188,25 @@ int main(int argc, char **argv) {
 					server.sin_family = AF_INET;
 					server.sin_port = htons(port);
 
-					if (hp = gethostbyname(host))
+					if (hp = gethostbyname(address))
 						bcopy(hp->h_addr, (char*)&server.sin_addr, hp->h_length);
-					else if (inet_aton(host, (struct in_addr*) &server.sin_addr)){
+					else if (inet_aton(address, (struct in_addr*) &server.sin_addr)){
 						fprintf(stderr, "can't get server address\n");
 					}
 
 					sd = socket(AF_INET, SOCK_DGRAM, 0);
-					connect(sd, (struct sockaddr*)&sin, sizeof(sin));
+					if(connect(sd, (struct sockaddr*)&server, sizeof(server)) == -1){
+						printf("cant connect\n");
+					}
+					printf("3\n");
 
 					spdu.type = 'D';
 					strcpy(spdu.data, cname);
-					write(sd, &spdu, sizeof(struct pdu));
+
+					char message[10];
+
+					read(sd, message, 10);
+					printf("%s\n", message);
 
 
 				} else if (rpdu.type == 'E') {
