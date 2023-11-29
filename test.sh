@@ -88,6 +88,8 @@ p2p_test() {
 
 	send_input ${PIPE1} "5"
 	send_input ${PIPE2} "5"
+	sleep 1
+	send_input ${PIPE3} "3"
 	send_input ${PIPE3} "5"
 }
 

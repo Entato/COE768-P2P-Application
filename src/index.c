@@ -84,11 +84,11 @@ int main(int argc, char *argv[]) {
 
 		switch (rpdu.type){
 			case 'R':
+				getpeername(s, (struct sockaddr*) &fsin, &alen);
 				struct content cont;
 
 				strcpy(cont.peerName, rpdu.data);
 				strcpy(cont.contentName, rpdu.data+10);
-				getpeername(s, (struct sockaddr*) &fsin, &alen);
 				strcpy(cont.address, inet_ntoa(fsin.sin_addr));
 				strcpy(cont.port, rpdu.data+20);
 
@@ -107,6 +107,7 @@ int main(int argc, char *argv[]) {
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 				break;
 			case 'S':
+				spdu.type = 'S';
 				struct content con;
 
 				strcpy(con.peerName, rpdu.data);
@@ -125,7 +126,6 @@ int main(int argc, char *argv[]) {
 					break;
 				}
 				index = getLowestFrequencyIndex(search);
-				spdu.type = 'S';
 				strcpy(spdu.data, contents[index].address);
 				strcpy(spdu.data+20, contents[index].port);
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
@@ -166,6 +166,9 @@ int main(int argc, char *argv[]) {
 				break;
 
 			default:
+				spdu.type = 'E';
+				strcpy(spdu.data, "Type not recognized\n");
+				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 		}
 
 	}
