@@ -159,9 +159,11 @@ int main(int argc, char **argv) {
 										
 										read(new_sd, &rpdu, sizeof(struct pdu));
 										spdu.type = 'C';
+										bzero((char*)&spdu.data, sizeof(spdu.data));
 										while((i = read(contentFile, spdu.data, 100)) > 0){
 											printf("%s", spdu.data);
 											write(new_sd, &spdu, sizeof(struct pdu));
+											bzero((char*)&spdu.data, sizeof(spdu.data));
 										}
 										close(new_sd);
 										exit(0);
@@ -219,13 +221,14 @@ int main(int argc, char **argv) {
 					strcpy(spdu.data, cname);
 
 					write(sd, &spdu, sizeof(struct pdu));
-					read(sd, (struct pdu*)&rpdu, sizeof(struct pdu));
-					printf("%s", rpdu.data);
-					/*
-					while((i = read(sd, (struct pdu*)&rpdu, sizeof(struct pdu))) > 0){
-						printf("%c;%s", rpdu.type, rpdu.data);
+
+
+					int contentFile = open(cname, O_RDWR | O_CREAT, 0777);
+
+					while(read(sd, (struct pdu*)&rpdu, sizeof(struct pdu)) > 0){
+						write(contentFile, rpdu.data, 100);
+						
 					}
-					*/
 
 
 				} else if (rpdu.type == 'E') {
