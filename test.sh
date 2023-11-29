@@ -9,6 +9,7 @@ TESTDIR="./test"
 
 PIPE1="peer1.pipe"
 PIPE2="peer2.pipe"
+PIPE3="peer3.pipe"
 
 start_server() {
 	echo "Starting index server"
@@ -40,6 +41,10 @@ peer_create() {
 	mkfifo ${PIPE2}
 	(cd ${TESTDIR}/peer2 && ../../${PEER} < ../../${PIPE2} &)
 	sleep infinity > ${PIPE2}&
+
+	mkfifo ${PIPE3}
+	(cd ${TESTDIR}/peer3 && ../../${PEER} < ../../${PIPE3} &)
+	sleep infinity > ${PIPE3}&
 
 	sleep 2
 }
@@ -73,10 +78,17 @@ p2p_test() {
 
 	sleep 1
 
+	send_input ${PIPE3} "2"
+	send_input ${PIPE3} "peer3"
+	send_input ${PIPE3} "content"
+
+	sleep 1
+
 	send_input ${PIPE1} "3"
 
 	send_input ${PIPE1} "5"
 	send_input ${PIPE2} "5"
+	send_input ${PIPE3} "5"
 }
 
 
