@@ -107,6 +107,13 @@ int main(int argc, char **argv) {
 				n = read(0, cname, 10);
 				cname[n - 1] = '\0';
 
+				int contentFile = open(cname, O_RDONLY);
+
+				if (contentFile == -1){
+					printf("File does not exist\n");
+					break;
+				}
+
 				//Creating TCP socket
 				sd = socket(AF_INET, SOCK_STREAM, 0);
 				bzero((char*)&server, sizeof(struct sockaddr_in));
@@ -151,7 +158,11 @@ int main(int argc, char **argv) {
 										close(sd);
 										
 										read(new_sd, &rpdu, sizeof(struct pdu));
-										write(new_sd, "content!!", 10);
+										spdu.type = 'C';
+										while((i = read(contentFile, spdu.data, 100)) > 0){
+											printf("%s", spdu.data);
+											write(new_sd, &spdu, sizeof(struct pdu));
+										}
 										close(new_sd);
 										exit(0);
 									default:
@@ -180,7 +191,6 @@ int main(int argc, char **argv) {
 				write(s, &spdu, sizeof(struct pdu));
 
 				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
-					char message[10];
 				if (rpdu.type == 'S'){
 					strcpy(address, rpdu.data);
 					strcpy(downloadPort, rpdu.data+20);
@@ -209,10 +219,13 @@ int main(int argc, char **argv) {
 					strcpy(spdu.data, cname);
 
 					write(sd, &spdu, sizeof(struct pdu));
-
-
-					read(sd, message, 10);
-					printf("%s\n", message);
+					read(sd, (struct pdu*)&rpdu, sizeof(struct pdu));
+					printf("%s", rpdu.data);
+					/*
+					while((i = read(sd, (struct pdu*)&rpdu, sizeof(struct pdu))) > 0){
+						printf("%c;%s", rpdu.type, rpdu.data);
+					}
+					*/
 
 
 				} else if (rpdu.type == 'E') {
