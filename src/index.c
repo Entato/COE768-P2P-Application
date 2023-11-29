@@ -120,6 +120,8 @@ int main(int argc, char *argv[]) {
 				strcpy(spdu.data+20, contents[index].port);
 				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
 
+				frequency[index]++;
+
 				break;
 
 			case 'O':
@@ -141,6 +143,7 @@ int main(int argc, char *argv[]) {
 				if (search){
 					index = getIndex(search);
 					memmove(contents+index, contents+index+1, (--contentsSize - index) *sizeof(struct content));
+					frequency[index] = 0;
 					spdu.type = 'A';
 					spdu.data[0] = '\0';
 					(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
@@ -183,7 +186,7 @@ uint32_t searchContent(char* content){
 int getIndex(uint32_t bitArray){
 	int count = 0;
 	while(bitArray != 1){
-		bitArray /= 2;
+		bitArray = bitArray >> 1;
 		count++;
 	}
 	return count;
