@@ -165,6 +165,8 @@ int main(int argc, char **argv) {
 											write(new_sd, &spdu, sizeof(struct pdu));
 											bzero((char*)&spdu.data, sizeof(spdu.data));
 										}
+										spdu.type = 'A';
+										write(new_sd, &spdu, sizeof(struct pdu));
 										close(new_sd);
 										exit(0);
 									default:
@@ -225,8 +227,10 @@ int main(int argc, char **argv) {
 
 					int contentFile = open(cname, O_RDWR | O_CREAT, 0777);
 
-					while(read(sd, (struct pdu*)&rpdu, sizeof(struct pdu)) > 0){
+					read(sd, (struct pdu*)&rpdu, sizeof(struct pdu));
+					while(rpdu.type != 'A'){
 						write(contentFile, rpdu.data, 100);
+						read(sd, (struct pdu*)&rpdu, sizeof(struct pdu));
 						
 					}
 
