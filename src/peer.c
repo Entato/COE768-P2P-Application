@@ -32,6 +32,7 @@ int regSize = 0;
 uint32_t searchName(char* name);
 uint32_t searchContent(char* content);
 int getIndex(uint32_t bitArray);
+void registerContent(int s, char *pname, char *cname);
 
 int main(int argc, char **argv) {
 	char	*host = "localhost";
@@ -107,82 +108,7 @@ int main(int argc, char **argv) {
 				n = read(0, cname, 10);
 				cname[n - 1] = '\0';
 
-				int contentFile = open(cname, O_RDONLY);
-
-				if (contentFile == -1){
-					printf("File does not exist\n");
-					break;
-				}
-
-				//Creating TCP socket
-				sd = socket(AF_INET, SOCK_STREAM, 0);
-				bzero((char*)&server, sizeof(struct sockaddr_in));
-				server.sin_family = AF_INET;
-				server.sin_port = htons(0);
-				server.sin_addr.s_addr = htonl(INADDR_ANY);
-				if(bind(sd, (struct sockaddr*)&server, sizeof(server)) == -1){
-					fprintf(stderr, "Can't bind name to socket");
-				}
-
-				alen = sizeof(struct sockaddr_in);
-				getsockname(sd, (struct sockaddr*) &server, &alen);
-
-				spdu.type = 'R';
-				strcpy(spdu.data, pname);
-				strcpy(spdu.data+10, cname);
-				sprintf(spdu.data+20, "%d", htons(server.sin_port));
-				write(s, &spdu, sizeof(struct pdu));
-
-				read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
-				if (rpdu.type == 'A'){
-					struct registered reg;
-					strcpy(reg.name, pname);
-					strcpy(reg.contentName, cname);
-					registeredContent[regSize] = reg;
-					regSize++;
-
-					switch (fork()){
-						//listening server
-						case 0:
-							listen(sd, 5);
-							(void) signal(SIGCHLD, SIG_IGN);
-
-							struct sockaddr_in client;
-							int new_sd;
-							int client_length = sizeof(client);
-							while(1){
-								new_sd = accept(sd, (struct sockaddr*)&client, &client_length);
-
-								switch(fork()){
-									case 0:
-										close(sd);
-										
-										read(new_sd, &rpdu, sizeof(struct pdu));
-										spdu.type = 'C';
-										bzero((char*)&spdu.data, sizeof(spdu.data));
-										while((i = read(contentFile, spdu.data, 100)) > 0){
-											printf("%s", spdu.data);
-											write(new_sd, &spdu, sizeof(struct pdu));
-											bzero((char*)&spdu.data, sizeof(spdu.data));
-										}
-										spdu.type = 'A';
-										write(new_sd, &spdu, sizeof(struct pdu));
-										close(new_sd);
-										exit(0);
-									default:
-										close(new_sd);
-								}
-							}
-							break;
-						default:
-							printf("Listening server created\n");
-							break;
-						case -1:
-							fprintf(stderr, "fork error\n");
-					}
-				} else if (rpdu.type == 'E'){
-					printf("%s\n", rpdu.data);
-				}
+				registerContent(s, pname, cname);
 				
 				break;
 			case 2:
@@ -231,7 +157,6 @@ int main(int argc, char **argv) {
 					while(rpdu.type != 'A'){
 						write(contentFile, rpdu.data, 100);
 						read(sd, (struct pdu*)&rpdu, sizeof(struct pdu));
-						
 					}
 
 
@@ -332,4 +257,90 @@ int getIndex(uint32_t bitArray){
 		count++;
 	}
 	return count;
+}
+
+void registerContent(int s, char *pname, char *cname){
+	int i;
+
+	int alen;
+	struct sockaddr_in server;
+	struct hostent *hp;
+
+	struct pdu spdu, rpdu;
+	int contentFile = open(cname, O_RDONLY);
+
+	if (contentFile == -1){
+		printf("File does not exist\n");
+		return;
+	}
+
+	//Creating TCP socket
+	int sd = socket(AF_INET, SOCK_STREAM, 0);
+	bzero((char*)&server, sizeof(struct sockaddr_in));
+	server.sin_family = AF_INET;
+	server.sin_port = htons(0);
+	server.sin_addr.s_addr = htonl(INADDR_ANY);
+	if(bind(sd, (struct sockaddr*)&server, sizeof(server)) == -1){
+		fprintf(stderr, "Can't bind name to socket");
+	}
+
+	alen = sizeof(struct sockaddr_in);
+	getsockname(sd, (struct sockaddr*) &server, &alen);
+
+	spdu.type = 'R';
+	strcpy(spdu.data, pname);
+	strcpy(spdu.data+10, cname);
+	sprintf(spdu.data+20, "%d", htons(server.sin_port));
+	write(s, &spdu, sizeof(struct pdu));
+
+	read(s, (struct pdu*)&rpdu, sizeof(struct pdu));
+	if (rpdu.type == 'A'){
+		struct registered reg;
+		strcpy(reg.name, pname);
+		strcpy(reg.contentName, cname);
+		registeredContent[regSize] = reg;
+		regSize++;
+
+		switch (fork()){
+			//listening server
+			case 0:
+				listen(sd, 5);
+				(void) signal(SIGCHLD, SIG_IGN);
+
+				struct sockaddr_in client;
+				int new_sd;
+				int client_length = sizeof(client);
+				while(1){
+					new_sd = accept(sd, (struct sockaddr*)&client, &client_length);
+
+					switch(fork()){
+						case 0:
+							close(sd);
+
+							read(new_sd, &rpdu, sizeof(struct pdu));
+							spdu.type = 'C';
+							bzero((char*)&spdu.data, sizeof(spdu.data));
+							while((i = read(contentFile, spdu.data, 100)) > 0){
+								printf("%s", spdu.data);
+								write(new_sd, &spdu, sizeof(struct pdu));
+								bzero((char*)&spdu.data, sizeof(spdu.data));
+							}
+							spdu.type = 'A';
+							write(new_sd, &spdu, sizeof(struct pdu));
+							close(new_sd);
+							exit(0);
+						default:
+							close(new_sd);
+					}
+				}
+				break;
+			default:
+				printf("Listening server created\n");
+				break;
+			case -1:
+				fprintf(stderr, "fork error\n");
+		}
+	} else if (rpdu.type == 'E'){
+		printf("%s\n", rpdu.data);
+	}
 }
