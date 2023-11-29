@@ -49,21 +49,23 @@ stop_peers() {
 }
 
 send_input() {
-	echo $1 | tee -a $2
+	echo $2 | tee -a $1
 }
 
-peertest(){
-	send_input "1" ${PIPE1}
-	send_input "name" ${PIPE1}
-	send_input "content" ${PIPE1}
-	send_input "3" ${PIPE2}
-	send_input "5" ${PIPE1}
-	send_input "5" ${PIPE2}
+p2p_test() {
+	send_input ${PIPE1} "1"
+	send_input ${PIPE1} "name"
+	send_input ${PIPE1} "content"
+
+	sleep 1
+
+	send_input ${PIPE2} "2"
+	send_input ${PIPE2} "content"
 }
 
-make
+
 start_server
 peer_create
-peertest
+p2p_test
 stop_peers
 stop_server
