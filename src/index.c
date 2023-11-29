@@ -166,9 +166,7 @@ int main(int argc, char *argv[]) {
 				break;
 
 			default:
-				spdu.type = 'E';
-				strcpy(spdu.data, "Type not recognized\n");
-				(void) sendto(s, &spdu, sizeof(struct pdu), 0, (struct sockaddr*)&fsin, sizeof(fsin));
+				;
 		}
 
 	}
